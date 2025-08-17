@@ -1,0 +1,5 @@
+# Netlify redirects file
+/*    /index.html   200
+
+# Redirect www to non-www
+https://www.spirittok.com/* https://spirittok.com/:splat 301!
