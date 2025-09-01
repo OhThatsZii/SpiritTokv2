@@ -11,7 +11,7 @@ const Auth: React.FC = () => {
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
   const [loading, setLoading] = useState(false);
-  
+
   const { signIn, signUp } = useAuth();
   const { toast } = useToast();
 
@@ -31,7 +31,7 @@ const Auth: React.FC = () => {
       toast({
         title: 'Error',
         description: error.message,
-        variant: 'destructive'
+        variant: 'destructive',
       });
     } finally {
       setLoading(false);
@@ -39,10 +39,19 @@ const Auth: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
-      <Card className="w-full max-w-md">
+    <div className="min-h-screen w-full bg-mystic text-white flex flex-col items-center justify-center p-4">
+      <img
+        src="/assets/fortune-ball.png"
+        alt="Fortune Teller Ball"
+        className="w-40 h-40 mb-6 animate-pulse drop-shadow-glow"
+      />
+      <h1 className="text-4xl font-bold text-spiritGold mb-6 font-tiktok">
+        Welcome to SpiritTok
+      </h1>
+
+      <Card className="w-full max-w-md bg-purple-800 text-white border-spiritGold shadow-xl">
         <CardHeader>
-          <CardTitle className="text-center">
+          <CardTitle className="text-center text-spiritGold font-tiktok">
             {isSignUp ? 'Create Account' : 'Sign In'}
           </CardTitle>
         </CardHeader>
@@ -54,6 +63,7 @@ const Auth: React.FC = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              className="bg-purple-700 text-white placeholder-white"
             />
             {isSignUp && (
               <Input
@@ -62,6 +72,7 @@ const Auth: React.FC = () => {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 required
+                className="bg-purple-700 text-white placeholder-white"
               />
             )}
             <Input
@@ -70,15 +81,29 @@ const Auth: React.FC = () => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
+              className="bg-purple-700 text-white placeholder-white"
             />
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? 'Loading...' : (isSignUp ? 'Sign Up' : 'Sign In')}
+
+            {loading && (
+              <div className="flex justify-center">
+                <div className="w-8 h-8 border-4 border-spiritGold border-t-transparent rounded-full animate-spin drop-shadow-glow" />
+              </div>
+            )}
+
+            <Button
+              type="submit"
+              className="w-full bg-spiritGold text-purple-900 font-bold hover:bg-yellow-300 transition flex items-center justify-center"
+              disabled={loading}
+            >
+              {!loading && (isSignUp ? 'Sign Up' : 'Sign In')}
             </Button>
           </form>
+
           <div className="mt-4 text-center">
             <Button
               variant="link"
               onClick={() => setIsSignUp(!isSignUp)}
+              className="text-spiritGold hover:text-yellow-200"
             >
               {isSignUp ? 'Already have an account? Sign In' : "Don't have an account? Sign Up"}
             </Button>
@@ -90,3 +115,6 @@ const Auth: React.FC = () => {
 };
 
 export default Auth;
+
+
+
