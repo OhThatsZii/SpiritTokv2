@@ -1,186 +1,86 @@
-import React, { useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import Auth from './Auth';
-import Feed from './Feed';
-import CreatePost from './CreatePost';
-import LiveStream from './LiveStream';
-import Messages from './Messages';
-import { CreatorApplication } from './CreatorApplication';
-import { AdminPanel } from './AdminPanel';
-import { UsersList } from './UsersList';
-import { EditProfile } from './EditProfileComplete';
-import ErrorHandler from './ErrorHandler';
-import { Button } from '@/components/ui/button';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Home, Video, MessageSquare, LogOut, Users, Settings, UserPlus, Edit3 } from 'lucide-react';
-const AppLayout: React.FC = () => {
-  const { user, loading, signOut } = useAuth();
-  const [activeTab, setActiveTab] = useState<'feed' | 'live' | 'messages' | 'users' | 'apply' | 'admin' | 'profile'>('feed');
-  const [showEditProfile, setShowEditProfile] = useState(false);
+import { useState } from 'react';
+import { Menu, X } from 'lucide-react';
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-      </div>
-    );
-  }
+const AppLayout = ({ children }: { children: React.ReactNode }) => {
+  const { user } = useAuth();
+  const location = useLocation();
+  const [mobileOpen, setMobileOpen] = useState(false);
 
-  if (!user) {
-    return <Auth />;
-  }
-
-  const handleSignOut = async () => {
-    try {
-      await signOut();
-    } catch (error) {
-      console.error('Error signing out:', error);
-    }
-  };
-
-  const refreshFeed = () => {
-    // This will trigger a re-render of the Feed component
-    setActiveTab('feed');
-  };
+  const navItems = [
+    { label: 'Feed', path: '/' },
+    { label: 'Search', path: '/search' },
+    { label: 'Messages', path: '/messages' },
+    { label: 'Profile', path: '/profile' },
+    ...(user?.role === 'owner'
+      ? [
+          { label: 'Admin', path: '/admin' },
+          { label: 'Users', path: '/admin/users' },
+          { label: 'Logs', path: '/admin/logs' },
+        ]
+      : []),
+  ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-black via-purple-900 to-black text-white flex flex-col">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-          <h1 className="text-xl font-bold">SpiritTok</h1>
-          
-          <div className="flex items-center space-x-4">
-            <Avatar>
-              <AvatarImage src={user.avatar_url} />
-              <AvatarFallback>{user.username[0].toUpperCase()}</AvatarFallback>
-            </Avatar>
-            <span className="font-medium">{user.username}</span>
-            {user.role === 'creator' && (
-              <span className="bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded-full">
-                Creator
-              </span>
-            )}
-            {user.role === 'owner' && (
-              <span className="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full">
-                Owner
-              </span>
-            )}
-            <Button variant="ghost" size="sm" onClick={() => setShowEditProfile(true)}>
-              <Edit3 className="h-4 w-4" />
-            </Button>
-            <Button variant="ghost" size="sm" onClick={handleSignOut}>
-              <LogOut className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-      </header>
+      <header className="p-4 border-b border-purple-500/20 flex justify-between items-center">
+        <h1 className="text-xl font-bold tracking-wide">🔮 SpiritTok</h1>
 
-      <div className="max-w-6xl mx-auto flex">
-        {/* Sidebar */}
-        <nav className="w-64 bg-white shadow-sm min-h-screen p-4">
-          <div className="space-y-2">
-            <Button
-              variant={activeTab === 'feed' ? 'default' : 'ghost'}
-              className="w-full justify-start"
-              onClick={() => setActiveTab('feed')}
+        {/* Desktop Nav */}
+        <nav className="hidden md:flex space-x-4">
+          {navItems.map((item) => (
+            <Link
+              key={item.path}
+              to={item.path}
+              className={`text-sm font-medium transition-colors ${
+                location.pathname === item.path
+                  ? 'text-purple-400'
+                  : 'text-gray-400 hover:text-white'
+              }`}
             >
-              <Home className="h-4 w-4 mr-2" />
-              Feed
-            </Button>
-            
-            {(user.role === 'owner' || user.role === 'creator') && (
-              <Button
-                variant={activeTab === 'live' ? 'default' : 'ghost'}
-                className="w-full justify-start"
-                onClick={() => setActiveTab('live')}
-              >
-                <Video className="h-4 w-4 mr-2" />
-                Go Live
-              </Button>
-            )}
-            
-            <Button
-              variant={activeTab === 'messages' ? 'default' : 'ghost'}
-              className="w-full justify-start"
-              onClick={() => setActiveTab('messages')}
-            >
-              <MessageSquare className="h-4 w-4 mr-2" />
-              Messages
-            </Button>
-            
-            <Button
-              variant={activeTab === 'users' ? 'default' : 'ghost'}
-              className="w-full justify-start"
-              onClick={() => setActiveTab('users')}
-            >
-              <Users className="h-4 w-4 mr-2" />
-              Users
-            </Button>
-
-            <Button
-              variant={activeTab === 'apply' ? 'default' : 'ghost'}
-              className="w-full justify-start"
-              onClick={() => setActiveTab('apply')}
-            >
-              <UserPlus className="h-4 w-4 mr-2" />
-              Creator Application
-            </Button>
-
-            {user.role === 'owner' && (
-              <Button
-                variant={activeTab === 'admin' ? 'default' : 'ghost'}
-                className="w-full justify-start"
-                onClick={() => setActiveTab('admin')}
-              >
-                <Settings className="h-4 w-4 mr-2" />
-                Admin Panel
-              </Button>
-            )}
-          </div>
+              {item.label}
+            </Link>
+          ))}
         </nav>
 
-        {/* Main Content */}
-        <main className="flex-1 p-6">
-          {activeTab === 'feed' && (
-            <div>
-              <CreatePost onPostCreated={refreshFeed} />
-              <Feed key={activeTab} />
-            </div>
-          )}
-          
-          {activeTab === 'live' && (user.role === 'owner' || user.role === 'creator') && (
-            <LiveStream />
-          )}
-          
-          {activeTab === 'messages' && (
-            <Messages />
-          )}
-          
-          {activeTab === 'users' && user.role === 'owner' && (
-            <AdminPanel />
-          )}
+        {/* Mobile Toggle */}
+        <button
+          className="md:hidden text-gray-400 hover:text-white"
+          onClick={() => setMobileOpen(!mobileOpen)}
+        >
+          {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+        </button>
+      </header>
 
-          {activeTab === 'users' && user.role !== 'owner' && (
-            <UsersList />
-          )}
-
-          {activeTab === 'apply' && (
-            <CreatorApplication onApplicationSubmitted={() => setActiveTab('feed')} />
-          )}
-
-          {activeTab === 'admin' && user.role === 'owner' && (
-            <AdminPanel />
-          )}
-        </main>
-      </div>
-
-      {/* Edit Profile Modal */}
-      {showEditProfile && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <EditProfile onClose={() => setShowEditProfile(false)} />
-        </div>
+      {/* Mobile Nav */}
+      {mobileOpen && (
+        <nav className="md:hidden bg-black border-b border-purple-500/20 px-4 py-2 space-y-2">
+          {navItems.map((item) => (
+            <Link
+              key={item.path}
+              to={item.path}
+              onClick={() => setMobileOpen(false)}
+              className={`block text-sm font-medium ${
+                location.pathname === item.path
+                  ? 'text-purple-400'
+                  : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              {item.label}
+            </Link>
+          ))}
+        </nav>
       )}
+
+      {/* Page Content */}
+      <main className="flex-1 p-6">{children}</main>
+
+      {/* Footer */}
+      <footer className="p-4 text-center text-xs text-gray-500 border-t border-purple-500/20">
+        &copy; {new Date().getFullYear()} SpiritTok. All rights reserved.
+      </footer>
     </div>
   );
 };

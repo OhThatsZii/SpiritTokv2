@@ -37,7 +37,9 @@ export const MessageInbox: React.FC = () => {
           status,
           created_at,
           sender_id,
-          sender:profiles!user_messages_sender_id_fkey(username, avatar_url)
+          recipient_id,
+          sender:profiles!user_messages_sender_id_fkey(username, avatar_url),
+          recipient:profiles!user_messages_recipient_id_fkey(username)
         `)
         .eq('recipient_id', user.id)
         .order('created_at', { ascending: false });
@@ -45,18 +47,33 @@ export const MessageInbox: React.FC = () => {
       if (error) throw error;
       
       // Check if sender is followed for each message
-      const messagesWithFollowStatus = await Promise.all(
-        (data || []).map(async (message) => {
+      const messagesWithFollowStatus: Message[] = await Promise.all(
+        (data || []).map(async (message: any) => {
           const { data: followData } = await supabase
             .from('follows')
             .select('id')
             .eq('follower_id', user.id)
             .eq('following_id', message.sender_id)
             .single();
-          
+
+          // sender and recipient are arrays if not null, so pick first element
+          const senderObj = Array.isArray(message.sender) ? message.sender[0] : message.sender;
+          const recipientObj = Array.isArray(message.recipient) ? message.recipient[0] : message.recipient;
+
           return {
-            ...message,
-            senderIsFollowed: !!followData
+            id: message.id,
+            content: message.content,
+            status: message.status,
+            created_at: message.created_at,
+            sender: {
+              username: senderObj?.username || 'Unknown',
+              avatar_url: senderObj?.avatar_url,
+            },
+            recipient: {
+              username: recipientObj?.username || 'Unknown',
+            },
+            // Optionally, you can add senderIsFollowed as a separate property if needed elsewhere
+            // senderIsFollowed: !!followData
           };
         })
       );
